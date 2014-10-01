@@ -1,7 +1,8 @@
-module Chess.Game where
+module Chess.Game ( Game(..), gameMoves, showGameHist, gameMessage, defendedDestinations, gameColor, isKingUnderCheck, gameBoard, validGames, isGameFinished, makeMove, validPromotionsMoves, winner ) where
 
 import String
 import Dict
+import Maybe (isNothing)
 import Chess.Color (..)
 import Chess.Figure (..)
 import Chess.Field (..)
@@ -10,6 +11,8 @@ import Chess.Move (..)
 import Chess.FigureMoves (..)
 import Chess.Board (Board,startingBoard,updateBoard,showBoard,showMove)
 import Chess.Util (..)
+import Chess.Color
+type Color = Chess.Color.Color
 
 data Game = GameStart | OngoingGame Color Board [Game] Move
 
@@ -22,8 +25,8 @@ gameMoves game = (game::(gameHist game)) >>= \g ->
 showGameHist : Game -> String
 showGameHist game =
   let moves = gameMoves game
-      separator num = if num `mod` 2 == 0 then " " else "\n"
-      moveNumber num = if num `mod` 2 == 0 then String.concat [String.padLeft 3 ' ' (show (1 + num `div` 2)),". "] else ""
+      separator num = if num % 2 == 0 then " " else "\n"
+      moveNumber num = if num % 2 == 0 then String.concat [String.padLeft 3 ' ' (show (1 + num // 2)),". "] else ""
       step move (num,str) = (num+1, String.concat [str, moveNumber num, move, separator num])
       (num,str) = foldr step (0,"") moves
   in
@@ -68,8 +71,8 @@ captureDestinations game =
   let hasEnemyFigure field =
         (mapMaybe .figureColor (Dict.get (showField field) (gameBoard game))) == (Just <| other (gameColor game))
   in
-    concatMap <| filter hasEnemyFigure .
-                 take 1 .
+    concatMap <| filter hasEnemyFigure <<
+                 take 1 <<
                  dropWhile (isFieldEmpty game)
 
 {-| Returns fields occupied by the enemy figures
@@ -80,8 +83,8 @@ defendedDestinations game =
   let hasSameColorFigure field =
         (mapMaybe .figureColor (Dict.get (showField field) (gameBoard game))) == Just (gameColor game)
   in
-    concatMap <| filter hasSameColorFigure .
-                 take 1 .
+    concatMap <| filter hasSameColorFigure <<
+                 take 1 <<
                  dropWhile (isFieldEmpty game)
 
 {-| Returns a new game, updated with a move. -}
@@ -181,7 +184,7 @@ nextGames game =
                             [ Queen, Rook, Bishop, Knight ]
                        else [ updateGame game (RegularMove from to) ]
             enPassantMoves =
-              map (\to -> updateGame game (EnPassantMove from to (field (.col to) (.row from)))) .
+              map (\to -> updateGame game (EnPassantMove from to (field (.col to) (.row from)))) <<
               filter (isEnPassantCapture game from) <|
               freeDestinations game (figureMoves fig from True)
         in regularAndPromotionMoves ++ enPassantMoves
@@ -189,7 +192,7 @@ nextGames game =
 
 {-| Filters out the next games in which the king is under check. -}
 validGames : Game -> [Game]
-validGames game = filter (not . isOtherKingUnderCheck) <| nextGames game
+validGames game = filter (not << isOtherKingUnderCheck) <| nextGames game
 
 {-| Returns a list of valid promotion figures. -}
 validPromotionsMoves : Game -> Field -> Field -> [Figure]
@@ -219,12 +222,12 @@ isGameFinished game =
          sort [ "k", "K" , "N" ],
          sort [ "k", "K" , "n" , "n" ],
          sort [ "k", "K" , "N" , "N" ]] ||
-  (not . isEmpty . filter (\g -> length g >= 3) . groupElements . sort . map (showBoard . gameBoard) <| game :: gameHist game)
+  (not << isEmpty << filter (\g -> length g >= 3) << groupElements << sort << map (showBoard << gameBoard) <| game :: gameHist game)
 
 {-| Returns 'Just' containing the color of the game winner or 'Nothing' if there is no winner. -}
 winner game =
   if (isGameFinished game && isKingUnderCheck game)
-  then Just . other . gameColor <| game
+  then Just << other << gameColor <| game
   else Nothing
 
 {-| Returns a new game state after moving a figure. If the given

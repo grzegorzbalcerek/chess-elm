@@ -1,8 +1,10 @@
 module Chess.Figure where
 
-import Chess.Color (..)
 import String (cons)
 import Char (fromCode)
+import Chess.Color (..)
+import Chess.Color
+type Color = Chess.Color.Color
 
 {-| Represents chess figure types. -}
 data FigureType = King | Queen | Rook | Bishop | Knight | Pawn

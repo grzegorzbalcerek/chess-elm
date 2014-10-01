@@ -8,6 +8,8 @@ import Chess.Move (..)
 import Chess.FigureMoves (..)
 import Chess.Game (..)
 import Chess.Util (..)
+import Chess.Color
+type Color = Chess.Color.Color
 
 {-| Returns the rank of a figure of the given type. -}
 figureRank : Figure -> Int
@@ -28,7 +30,7 @@ fieldRank {col,row} =
 {-| Returns the figure rank based on the figures it is defending. -}
 figureDefendingOtherFiguresRank : Game -> Field -> Figure -> Int
 figureDefendingOtherFiguresRank game field figure =
-  (length <| defendedDestinations game (figureMoves figure field True)) `div` 2
+  (length <| defendedDestinations game (figureMoves figure field True)) // 2
 
 {-| Returns a rank value related to whether the King is under check or not. -}
 checkRank : Game -> Color -> Int

@@ -6,6 +6,7 @@ import Chess.Color (..)
 import Chess.Figure (..)
 import Chess.Field (..)
 import Chess.Move (..)
+import Maybe (maybe)
 
 type Board = Dict.Dict String Figure
 
@@ -62,23 +63,23 @@ updateBoard : Board -> Move -> Board
 updateBoard board move = case move of
   RegularMove from to ->
     case Dict.get (showField from) board of
-      Just figure -> Dict.insert (showField to) figure . Dict.remove (showField from) <| board
+      Just figure -> Dict.insert (showField to) figure << Dict.remove (showField from) <| board
       _ -> board
   PromotionMove from to figure ->
     case Dict.get (showField from) board of
-      Just _ -> Dict.insert (showField to) figure . Dict.remove (showField from) <| board
+      Just _ -> Dict.insert (showField to) figure << Dict.remove (showField from) <| board
       _ -> board
   EnPassantMove from to captured ->
     case Dict.get (showField from) board of
-      Just figure -> Dict.insert (showField to) figure .
-                     Dict.remove (showField from) .
+      Just figure -> Dict.insert (showField to) figure <<
+                     Dict.remove (showField from) <<
                      Dict.remove (showField captured) <| board
       _ -> board
   CastlingMove from to rookFrom rookTo ->
     case (Dict.get (showField from) board, Dict.get (showField rookFrom) board) of
-      (Just king, Just rook) -> Dict.insert (showField to) king .
-                                Dict.insert (showField rookTo) rook .
-                                Dict.remove (showField from) .
+      (Just king, Just rook) -> Dict.insert (showField to) king <<
+                                Dict.insert (showField rookTo) rook <<
+                                Dict.remove (showField from) <<
                                 Dict.remove (showField rookFrom) <| board
       _ -> board
 

@@ -1,5 +1,7 @@
 module Chess.Util where
 
+import Maybe (..)
+
 takeWhile predicate lst = case lst of
   [] -> []
   (x::xs) -> if (predicate x)
@@ -12,7 +14,7 @@ dropWhile predicate lst = case lst of
              then dropWhile predicate xs
              else lst
 
-mapMaybe f = maybe Nothing (Just . f)
+mapMaybe f = maybe Nothing (Just << f)
 
 (>>=) = flip concatMap
 
@@ -22,7 +24,7 @@ find f lst = case (filter f lst) of
   x::_ -> Just x
 
 elem : a -> [a] -> Bool
-elem e lst = not . isEmpty <| filter (\x -> x == e) lst
+elem e lst = not << isEmpty <| filter (\x -> x == e) lst
 
 groupElements lst =
   let group1 = foldl (\x (g::gs) -> if (x == head g) then (x::g)::gs else [x]::g::gs)

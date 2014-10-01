@@ -2,7 +2,9 @@ module Chess.Field where
 
 import Char (fromCode,toCode,toLower)
 import String (show,cons,toList)
-import Chess.Color (Color,firstRow,other)
+import Chess.Color (firstRow,other)
+import Chess.Color
+type Color = Chess.Color.Color
 
 {-| The game of chess is played on a board with 64 fields.
 The board has the shape of a square with eight rows — from 1 to 8
@@ -22,7 +24,7 @@ field c r = { col = c, row = r }
 a letter representing the column and a number representing the row.
 -}
 showField : Field -> String
-showField {col,row} = (toLower . fromCode) (64+col) `cons` show row
+showField {col,row} = (toLower << fromCode) (64+col) `cons` show row
 
 readField : String -> Field
 readField f =

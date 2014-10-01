@@ -1,4 +1,4 @@
-module Chess.Color where
+module Chess.Color (Color(White,Black),showColor,other,firstRow) where
 
 -- | The 'Color' class represents one of the two colors ('Black' or 'White')
 -- used in the game of Chess.

@@ -19,7 +19,7 @@ moves game =
      else let
             rankedMoves = map (\g -> (g, rank g (gameColor g))) moves
             rankedMovesSorted = sortBy snd rankedMoves
-            firstRank = snd . head <| rankedMovesSorted
+            firstRank = snd << head <| rankedMovesSorted
             maxRankMoves = takeWhile (\(_,rank) -> rank == firstRank) rankedMovesSorted
           in map fst maxRankMoves
 

@@ -1,10 +1,10 @@
 module Chess.Chess where
 
 import Chess.Util (..)
-import Chess.Color (Color,White)
+import Chess.Color (Color)
 import Chess.Board (Board)
-import Chess.Game (Game,GameStart,gameBoard,gameColor,makeMove,gameMessage,isGameFinished,winner,validPromotionsMoves,showGameHist)
-import Chess.Field (Field,readField,fieldCol,field,isValid,showField)
+import Chess.Game (Game(GameStart),gameBoard,gameColor,makeMove,gameMessage,isGameFinished,winner,validPromotionsMoves,showGameHist)
+import Chess.Field (Field,readField,field,isValid,showField)
 import Chess.Figure (Figure,showFigureUnicode,figure)
 import Chess.ComputerPlayer (generateMove)
 import String (cons,show,append)
@@ -12,7 +12,9 @@ import Char (fromCode,toLower)
 import Dict
 import Mouse
 import Time
+import Text
 import Graphics.Input (Input,input,clickable)
+import Maybe (maybe)
 
 -- board drawing
 
@@ -22,7 +24,7 @@ fieldSize : Float
 fieldSize = boardSize / 9
 
 fieldColor col row =
-  if (col+row) `mod` 2 == 1 then yellow else red
+  if (col+row) % 2 == 1 then yellow else red
 
 fieldForms = [1..8] >>= \col ->
              [1..8] >>= \row ->
@@ -34,7 +36,7 @@ borderForm = [ rect (fieldSize*8) (fieldSize*8) |>
 coordinateForms : [Form]
 coordinateForms = [1..8] >>= \n ->
                   let rowSymbol = show n |> toText |> Text.height (0.35*fieldSize) |> centered |> toForm
-                      colSymbol = cons ((toLower . fromCode) (64+(round n))) "" |> toText |> Text.height (0.35*fieldSize) |> centered |> toForm
+                      colSymbol = cons ((toLower << fromCode) (64+(round n))) "" |> toText |> Text.height (0.35*fieldSize) |> centered |> toForm
                   in [ rowSymbol |> move (-4.25*fieldSize,n*fieldSize-4.5*fieldSize)
                      , rowSymbol |> move (4.25*fieldSize,n*fieldSize-4.5*fieldSize)
                      , colSymbol |> move (n*fieldSize-4.5*fieldSize,4.25*fieldSize)
@@ -179,7 +181,7 @@ chooseMessage state =
   then "Game Over. " `append` (case winner state.game of
                                                 Just color -> "Winner: " `append` show color `append` "."
                                                 Nothing -> "Draw.")
-  else maybe (gameMessage state.game) id state.message
+  else maybe (gameMessage state.game) identity state.message
 
 view state =
   let {game,message,selection,phase} = state
