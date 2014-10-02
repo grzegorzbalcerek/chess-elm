@@ -33,12 +33,6 @@ readField f =
       row = toCode r - 48
   in field col row
 
-{-| Returns a new field with coordinates moved
-by the given number of rows and columns relative to the original field.
--}
-relative : Field -> Int -> Int -> Field
-relative {col,row} c r = { col = col+c, row = row+r }
-
 {-| Returns a boolean value indicating
 whether the given field belongs to the last row from
 the point of view of a player.
