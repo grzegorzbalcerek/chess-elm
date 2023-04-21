@@ -1,8 +1,8 @@
-module Chess.Color (Color(White,Black),showColor,other,firstRow) where
+module Chess.Color exposing (..)
 
 -- | The 'Color' class represents one of the two colors ('Black' or 'White')
 -- used in the game of Chess.
-data Color = White | Black
+type Color = White | Black
 
 showColor color = case color of
   White -> "White"
@@ -20,15 +20,3 @@ firstRow : Color -> Int
 firstRow color = case color of
   White -> 1
   Black -> 8
-
-{-
-
-elm-repl
-import Chess.Color (..)
-other White -- Black
-other Black -- White
-firstRow White -- 1
-firstRow Black -- 8
-:exit
-
--}

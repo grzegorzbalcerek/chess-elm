@@ -1,33 +1,34 @@
-module Chess.ComputerPlayer where
+module Chess.ComputerPlayer exposing (..)
 
 import Dict
-import Chess.Color (..)
-import Chess.Figure (..)
-import Chess.Field (..)
-import Chess.Move (..)
-import Chess.FigureMoves (..)
-import Chess.Game (..)
-import Chess.Rank (..)
-import Chess.Util (..)
+import Chess.Color exposing (..)
+import Chess.Figure exposing (..)
+import Chess.Field exposing (..)
+import Chess.Move exposing (..)
+import Chess.FigureMoves exposing (..)
+import Chess.Game exposing (..)
+import Chess.Rank exposing (..)
+import Chess.Util exposing (..)
 
 {-| Returns a sequence of the best ranked moves.-}
-moves : Game -> [Game]
+moves : Game -> List Game
 moves game =
-  let moves = validGames game
-  in if isEmpty moves
+  let moves1 = validGames game
+  in if List.isEmpty moves1
      then []
      else let
-            rankedMoves = map (\g -> (g, rank g (gameColor g))) moves
-            rankedMovesSorted = sortBy snd rankedMoves
-            firstRank = snd << head <| rankedMovesSorted
+            rankedMoves = List.map (\g -> (g, rank g (gameColor g))) moves1
+            rankedMovesSorted = List.sortBy Tuple.second rankedMoves
+            firstRank = case rankedMovesSorted of
+                           [] -> -9999999
+                           x :: xs -> Tuple.second x
             maxRankMoves = takeWhile (\(_,rank) -> rank == firstRank) rankedMovesSorted
-          in map fst maxRankMoves
+          in List.map Tuple.first maxRankMoves
 
 {-| Makes a move and returns the next game state. -}
 generateMove : Game -> Maybe Game
-generateMove game = case moves game of
-  [] -> Nothing
-  h::_ -> Just h
+generateMove game =
+  List.head <| moves game
 
 {-
 

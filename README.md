@@ -16,3 +16,4 @@ The code includes comments. The suggested order of reading:
   * ComputerPlayer.elm
   * Chess.elm
   * Util.elm
+

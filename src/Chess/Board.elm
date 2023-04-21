@@ -1,18 +1,18 @@
-module Chess.Board where
+module Chess.Board exposing (..)
 
+import Dict exposing (Dict, fromList)
 import Dict
 import String
-import Chess.Color (..)
-import Chess.Figure (..)
-import Chess.Field (..)
-import Chess.Move (..)
-import Maybe (maybe)
+import Chess.Color exposing (..)
+import Chess.Figure exposing (..)
+import Chess.Field exposing (..)
+import Chess.Move exposing (..)
 
-type Board = Dict.Dict String Figure
+type alias Board = Dict String Figure
 
 {-| The board state when the game starts. -}
 startingBoard : Board
-startingBoard = Dict.fromList [
+startingBoard = fromList [
   (showField <| field 1 1, figure Rook White),
   (showField <| field 2 1, figure Knight White),
   (showField <| field 3 1, figure Bishop White),
@@ -52,63 +52,58 @@ showBoard board =
   let showFieldContent row col = case Dict.get (showField <| field col row) board of
                                    Just x -> showFigure x
                                    Nothing -> "."
-      showRow row = (String.show row) ++
-                    String.concat (map (showFieldContent row) [1..8]) ++
-                    (String.show row) ++ "\n"
+      showLine row = (showRow row) ++
+                    String.concat (List.map (showFieldContent row) (List.range 1 8)) ++
+                    (showRow row) ++ "\n"
   in
-    " abcdefgh\n" ++ String.concat (map showRow <| reverse [1..8]) ++ " abcdefgh\n"
+    " abcdefgh\n" ++ String.concat (List.map showLine <| List.reverse (List.range 1 8)) ++ " abcdefgh\n"
 
 {-| Returns a new board, updated with a move. -}
 updateBoard : Board -> Move -> Board
 updateBoard board move = case move of
   RegularMove from to ->
     case Dict.get (showField from) board of
-      Just figure -> Dict.insert (showField to) figure << Dict.remove (showField from) <| board
+      Just figure -> board |> Dict.remove (showField from) |> Dict.insert (showField to) figure
       _ -> board
   PromotionMove from to figure ->
     case Dict.get (showField from) board of
-      Just _ -> Dict.insert (showField to) figure << Dict.remove (showField from) <| board
+      Just _ -> board |> Dict.remove (showField from) |> Dict.insert (showField to) figure
       _ -> board
   EnPassantMove from to captured ->
     case Dict.get (showField from) board of
-      Just figure -> Dict.insert (showField to) figure <<
-                     Dict.remove (showField from) <<
-                     Dict.remove (showField captured) <| board
+      Just figure ->
+        board |>
+          Dict.remove (showField captured) |>
+          Dict.remove (showField from) |>
+          Dict.insert (showField to) figure
       _ -> board
   CastlingMove from to rookFrom rookTo ->
     case (Dict.get (showField from) board, Dict.get (showField rookFrom) board) of
-      (Just king, Just rook) -> Dict.insert (showField to) king <<
-                                Dict.insert (showField rookTo) rook <<
-                                Dict.remove (showField from) <<
-                                Dict.remove (showField rookFrom) <| board
+      (Just king, Just rook) ->
+        board |>
+        Dict.remove (showField rookFrom) |>
+        Dict.remove (showField from) |>
+        Dict.insert (showField rookTo) rook |>
+        Dict.insert (showField to) king
       _ -> board
 
 getFigure : Board -> Field -> Maybe Figure
 getFigure board field = Dict.get (showField field) board
 
-showFigure' : Figure -> String
-showFigure' figure =
+showFigure1 : Figure -> String
+showFigure1 figure =
   let symbol = String.toUpper <| showFigure figure
   in if symbol == "P" then " " else symbol
 
 showMove : Move -> Board -> String
 showMove move board = case move of
-  RegularMove from to       -> concat [maybe " " showFigure' (getFigure board to), showField from, "-", showField to, " "]
-  PromotionMove from to fig -> concat [maybe " " showFigure' (getFigure board to), showField from, "-", showField to, showFigure fig]
-  EnPassantMove from to _   -> concat [maybe " " showFigure' (getFigure board to), showField from, "-", showField to, " "]
+  RegularMove from to       -> Maybe.withDefault " " (Maybe.map showFigure1 (getFigure board to)) ++ showField from ++ "-" ++ showField to ++ " "
+  PromotionMove from to fig -> Maybe.withDefault " " (Maybe.map showFigure1 (getFigure board to)) ++ showField from ++ "-" ++ showField to ++ showFigure fig
+  EnPassantMove from to _   -> Maybe.withDefault " " (Maybe.map showFigure1 (getFigure board to)) ++ showField from ++ "-" ++ showField to ++ " "
   CastlingMove _ {col} _ _  -> if col == 7 then "O-O    " else "O-O-O  "
 
 {-
 
-elm -m Chess\Board.elm
-elm-repl
-import Chess.Color (..)
-import Chess.Board (..)
-import Chess.Move (..)
-import Chess.Field (..)
-import Chess.Figure (..)
-startingBoard
-showBoard startingBoard
 showBoard <| updateBoard startingBoard (RegularMove (field 2 2) (field 2 3))
 showBoard <| updateBoard startingBoard (RegularMove (field 3 3) (field 2 3))
 showBoard <| updateBoard startingBoard (PromotionMove (field 2 2) (field 2 8) (figure Queen White))
